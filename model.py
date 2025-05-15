@@ -29,7 +29,7 @@ class GraphLayer(nn.Module):
         knn_x = index_points(x.permute(0, 2, 1), knn_idx)  # (B, N, k, C)
 
         # Local Max Pooling
-        x = torch.max(knn_x, dim=2)[0].permute(0, 2, 1)  # (B, N, C)
+        x = torch.max(knn_x, dim=2)[0].permute(0, 2, 1)  # (B, C, N)
         
         # Feature Map
         x = F.relu(self.bn(self.conv(x)))
@@ -40,10 +40,11 @@ class Encoder(nn.Module):
     """
     Graph based encoder.
     """
-    def __init__(self):
+    def __init__(self, c_dim=3):
         super(Encoder, self).__init__()
 
-        self.conv1 = nn.Conv1d(12, 64, 1)
+        dim = c_dim + c_dim * c_dim
+        self.conv1 = nn.Conv1d(dim, 64, 1)
         self.conv2 = nn.Conv1d(64, 64, 1)
         self.conv3 = nn.Conv1d(64, 64, 1)
 
@@ -123,7 +124,7 @@ class Decoder(nn.Module):
     Decoder Module of FoldingNet
     """
 
-    def __init__(self, in_channel=512):
+    def __init__(self, in_channel=512, c_dim=3):
         super(Decoder, self).__init__()
 
         # Sample the grids in 2D space
@@ -132,12 +133,12 @@ class Decoder(nn.Module):
         self.grid = np.meshgrid(xx, yy)   # (2, 45, 45)
 
         # reshape
-        self.grid = torch.Tensor(self.grid).view(2, -1)  # (2, 45, 45) -> (2, 45 * 45)
+        self.grid = torch.Tensor(np.asarray(self.grid)).view(2, -1)  # (2, 45, 45) -> (2, 45 * 45)
         
         self.m = self.grid.shape[1]
 
-        self.fold1 = FoldingLayer(in_channel + 2, [512, 512, 3])
-        self.fold2 = FoldingLayer(in_channel + 3, [512, 512, 3])
+        self.fold1 = FoldingLayer(in_channel + 2, [512, 512, c_dim])
+        self.fold2 = FoldingLayer(in_channel + c_dim, [512, 512, c_dim])
 
     def forward(self, x):
         """
@@ -160,11 +161,11 @@ class Decoder(nn.Module):
 
 
 class AutoEncoder(nn.Module):
-    def __init__(self):
+    def __init__(self, c_dim=3):
         super().__init__()
 
-        self.encoder = Encoder()
-        self.decoder = Decoder()
+        self.encoder = Encoder(c_dim=c_dim)
+        self.decoder = Decoder(c_dim=c_dim)
 
     def forward(self, x):
         x = self.encoder(x)
@@ -173,16 +174,17 @@ class AutoEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    pcs = torch.randn(32, 3, 2048)
+    pcs = torch.randn(32, 6, 2048)
+    _b, c, _n = pcs.size()
 
-    encoder = Encoder()
+    encoder = Encoder(c_dim=c)
     codewords = encoder(pcs)
-    print(codewords.size())
+    print("Encoder: ", codewords.size())
 
-    decoder = Decoder(codewords.size(1))
+    decoder = Decoder(codewords.size(1), c_dim=c)
     recons = decoder(codewords)
-    print(recons.size())
+    print("Decoder: ", recons.size())
 
-    ae = AutoEncoder()
+    ae = AutoEncoder(c_dim=c)
     y = ae(pcs)
-    print(y.size())
+    print("AutoEncoder: ", y.size())
