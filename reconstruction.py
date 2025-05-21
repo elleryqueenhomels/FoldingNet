@@ -10,7 +10,7 @@ ae = AutoEncoder()
 ae.load_state_dict(torch.load('log/model_lowest_cd_loss.pth'))
 ae.eval()
 
-DATASET_PATH = '/home/rico/Workspace/Dataset/shapenet_part/shapenetcore_partanno_segmentation_benchmark_v0'
+DATASET_PATH = '~/PartAnnotation'
 test_dataset = ShapeNetPartDataset(root=DATASET_PATH, npoints=2048, split='train', classification=False, data_augmentation=False, class_choice='Table')
 input_pc = test_dataset[random.randint(0, len(test_dataset))][0]
 show_point_cloud(input_pc)

@@ -5,7 +5,7 @@ from model import AutoEncoder
 from chamfer_distance.chamfer_distance import ChamferDistance
 
 
-test_dataset = ShapeNetPartDataset(root='/home/rico/Workspace/Dataset/shapenet_part/shapenetcore_partanno_segmentation_benchmark_v0',
+test_dataset = ShapeNetPartDataset(root='~/PartAnnotation',
                                    npoints=2048, split='test', classification=False, data_augmentation=True)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=4)
 model = AutoEncoder()
