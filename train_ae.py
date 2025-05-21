@@ -11,7 +11,7 @@ from chamfer_distance.chamfer_distance import ChamferDistance
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root', type=str, default='/home/rico/Workspace/Dataset/shapenet_part/shapenetcore_partanno_segmentation_benchmark_v0')
+parser.add_argument('--root', type=str, default='~/PartAnnotation')
 parser.add_argument('--npoints', type=int, default=2048)
 parser.add_argument('--mpoints', type=int, default=2025)
 parser.add_argument('--batch_size', type=int, default=16)
